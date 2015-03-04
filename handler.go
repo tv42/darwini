@@ -22,8 +22,7 @@ func (fn HandlerFunc) ServeHTTP(ctx context.Context, w http.ResponseWriter, req 
 }
 
 // WithContext adapts a darwini.Handler to work as a net/http.Handler.
-// The context will be canceled when the HTTP client disconnects
-// early.
+// The context will be canceled when the HTTP client disconnects.
 func WithContext(h Handler) http.Handler {
 	return withContext{h}
 }
