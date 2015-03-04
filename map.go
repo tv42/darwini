@@ -11,7 +11,7 @@ import (
 // are served by the map entry for seg, or not found if nil.
 //
 // As a special case, missing /path/ is forbidden instead of not
-// found, to avoid a situation where /path/foo exists but it's parent
+// found, to avoid a situation where /path/foo exists but its parent
 // does not.
 type Map map[string]Handler
 
