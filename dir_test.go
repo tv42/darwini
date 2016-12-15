@@ -5,17 +5,16 @@ import (
 	"testing"
 
 	"github.com/tv42/darwini"
-	"golang.org/x/net/context"
 )
 
 func TestDirParent(t *testing.T) {
 	var seen bool
-	h := func(ctx context.Context, w http.ResponseWriter, req *http.Request) {
+	h := func(w http.ResponseWriter, req *http.Request) {
 		seen = true
 	}
 	m := darwini.Map{
 		"foo": darwini.Dir{
-			Parent: darwini.HandlerFunc(h),
+			Parent: http.HandlerFunc(h),
 		},
 	}
 	resp := DoRequest(m, "GET", "/foo", nil)
@@ -26,13 +25,13 @@ func TestDirParent(t *testing.T) {
 
 func TestDirChild(t *testing.T) {
 	var seen bool
-	h := func(ctx context.Context, w http.ResponseWriter, req *http.Request) {
+	h := func(w http.ResponseWriter, req *http.Request) {
 		seen = true
 	}
 	m := darwini.Map{
 		"foo": darwini.Dir{
 			Child: darwini.Map{
-				"bar": darwini.HandlerFunc(h),
+				"bar": http.HandlerFunc(h),
 			},
 		},
 	}
@@ -44,13 +43,13 @@ func TestDirChild(t *testing.T) {
 
 func TestDirChildSlashOnly(t *testing.T) {
 	var seen bool
-	h := func(ctx context.Context, w http.ResponseWriter, req *http.Request) {
+	h := func(w http.ResponseWriter, req *http.Request) {
 		seen = true
 	}
 	m := darwini.Map{
 		"foo": darwini.Dir{
 			Child: darwini.Map{
-				"": darwini.HandlerFunc(h),
+				"": http.HandlerFunc(h),
 			},
 		},
 	}

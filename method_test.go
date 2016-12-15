@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/tv42/darwini"
-	"golang.org/x/net/context"
 )
 
 func TestMethodBadSlash(t *testing.T) {
@@ -37,7 +36,7 @@ func TestMethodBadMethod(t *testing.T) {
 		PUT:    DoNotCall,
 		PATCH:  DoNotCall,
 		DELETE: DoNotCall,
-		Custom: map[string]darwini.HandlerFunc{"FROB": DoNotCall},
+		Custom: map[string]http.HandlerFunc{"FROB": DoNotCall},
 	}
 	resp := DoRequest(m, "BAD", "", nil)
 	if resp.Code != http.StatusMethodNotAllowed {
@@ -53,7 +52,7 @@ func TestMethodBadMethod(t *testing.T) {
 
 func TestMethodGet(t *testing.T) {
 	var seen bool
-	h := func(ctx context.Context, w http.ResponseWriter, req *http.Request) {
+	h := func(w http.ResponseWriter, req *http.Request) {
 		seen = true
 	}
 	m := darwini.Method{
@@ -67,7 +66,7 @@ func TestMethodGet(t *testing.T) {
 
 func TestMethodPost(t *testing.T) {
 	var seen bool
-	h := func(ctx context.Context, w http.ResponseWriter, req *http.Request) {
+	h := func(w http.ResponseWriter, req *http.Request) {
 		seen = true
 	}
 	m := darwini.Method{
@@ -81,7 +80,7 @@ func TestMethodPost(t *testing.T) {
 
 func TestMethodPut(t *testing.T) {
 	var seen bool
-	h := func(ctx context.Context, w http.ResponseWriter, req *http.Request) {
+	h := func(w http.ResponseWriter, req *http.Request) {
 		seen = true
 	}
 	m := darwini.Method{
@@ -95,7 +94,7 @@ func TestMethodPut(t *testing.T) {
 
 func TestMethodPatch(t *testing.T) {
 	var seen bool
-	h := func(ctx context.Context, w http.ResponseWriter, req *http.Request) {
+	h := func(w http.ResponseWriter, req *http.Request) {
 		seen = true
 	}
 	m := darwini.Method{
@@ -109,7 +108,7 @@ func TestMethodPatch(t *testing.T) {
 
 func TestMethodDelete(t *testing.T) {
 	var seen bool
-	h := func(ctx context.Context, w http.ResponseWriter, req *http.Request) {
+	h := func(w http.ResponseWriter, req *http.Request) {
 		seen = true
 	}
 	m := darwini.Method{
@@ -123,11 +122,11 @@ func TestMethodDelete(t *testing.T) {
 
 func TestMethodCustom(t *testing.T) {
 	var seen bool
-	h := func(ctx context.Context, w http.ResponseWriter, req *http.Request) {
+	h := func(w http.ResponseWriter, req *http.Request) {
 		seen = true
 	}
 	m := darwini.Method{
-		Custom: map[string]darwini.HandlerFunc{"FROB": h},
+		Custom: map[string]http.HandlerFunc{"FROB": h},
 	}
 	resp := DoRequest(m, "FROB", "", nil)
 	if !seen {

@@ -2,8 +2,6 @@ package darwini
 
 import (
 	"net/http"
-
-	"golang.org/x/net/context"
 )
 
 // Method multiplexes requests based on the HTTP method. For Method at
@@ -14,17 +12,17 @@ import (
 // The values here are HandlerFuncs and not Handlers, as it is common
 // to make them be methods on the same value.
 type Method struct {
-	GET    HandlerFunc
-	POST   HandlerFunc
-	PUT    HandlerFunc
-	PATCH  HandlerFunc
-	DELETE HandlerFunc
-	Custom map[string]HandlerFunc
+	GET    http.HandlerFunc
+	POST   http.HandlerFunc
+	PUT    http.HandlerFunc
+	PATCH  http.HandlerFunc
+	DELETE http.HandlerFunc
+	Custom map[string]http.HandlerFunc
 }
 
-var _ Handler = Method{}
+var _ http.Handler = Method{}
 
-func (m Method) get(method string) HandlerFunc {
+func (m Method) get(method string) http.HandlerFunc {
 	switch method {
 	case "GET":
 		return m.GET
@@ -41,7 +39,7 @@ func (m Method) get(method string) HandlerFunc {
 	}
 }
 
-func (m Method) err(ctx context.Context, w http.ResponseWriter, req *http.Request) {
+func (m Method) err(w http.ResponseWriter, req *http.Request) {
 	if m.GET != nil {
 		w.Header().Add("Allow", "GET")
 	}
@@ -65,7 +63,7 @@ func (m Method) err(ctx context.Context, w http.ResponseWriter, req *http.Reques
 	http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 }
 
-func (m Method) ServeHTTP(ctx context.Context, w http.ResponseWriter, req *http.Request) {
+func (m Method) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	// disallow children; caller should use Dir if that's desired
 	if req.URL.Path != "" {
 		http.NotFound(w, req)
@@ -73,8 +71,8 @@ func (m Method) ServeHTTP(ctx context.Context, w http.ResponseWriter, req *http.
 	}
 	h := m.get(req.Method)
 	if h == nil {
-		m.err(ctx, w, req)
+		m.err(w, req)
 		return
 	}
-	h.ServeHTTP(ctx, w, req)
+	h.ServeHTTP(w, req)
 }

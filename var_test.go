@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/tv42/darwini"
-	"golang.org/x/net/context"
 )
 
 func TestVarSelf(t *testing.T) {
@@ -20,11 +19,11 @@ func TestVarSelf(t *testing.T) {
 
 func TestVarIndex(t *testing.T) {
 	var seen bool
-	h := func(ctx context.Context, w http.ResponseWriter, req *http.Request) {
+	h := func(w http.ResponseWriter, req *http.Request) {
 		seen = true
 	}
 	m := darwini.Var{
-		Index: darwini.HandlerFunc(h),
+		Index: http.HandlerFunc(h),
 	}
 	resp := DoRequest(m, "GET", "/", nil)
 	if !seen {
@@ -42,11 +41,11 @@ func TestVarIndexIsNil(t *testing.T) {
 
 func TestVarChild(t *testing.T) {
 	var seen bool
-	itemFn := func(seg string) darwini.Handler {
+	itemFn := func(seg string) http.Handler {
 		if g, e := seg, "foo"; g != e {
 			t.Errorf("darwini.Var gave wrong string: %q != %q", g, e)
 		}
-		return darwini.HandlerFunc(func(ctx context.Context, w http.ResponseWriter, req *http.Request) {
+		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 			if g, e := req.URL.Path, ""; g != e {
 				t.Errorf("darwini.Var child url path is wrong: %q != %q", g, e)
 			}
@@ -64,7 +63,7 @@ func TestVarChild(t *testing.T) {
 
 func TestVarChildReturnsNil(t *testing.T) {
 	m := darwini.Var{
-		Child: func(seg string) darwini.Handler { return nil },
+		Child: func(seg string) http.Handler { return nil },
 	}
 	resp := DoRequest(m, "GET", "/foo", nil)
 	if resp.Code != http.StatusNotFound {
@@ -82,11 +81,11 @@ func TestVarChildIsNil(t *testing.T) {
 
 func TestVarChildDeep(t *testing.T) {
 	var seen bool
-	childFn := func(seg string) darwini.Handler {
+	childFn := func(seg string) http.Handler {
 		if g, e := seg, "foo"; g != e {
 			t.Errorf("darwini.Var gave wrong string: %q != %q", g, e)
 		}
-		return darwini.HandlerFunc(func(ctx context.Context, w http.ResponseWriter, req *http.Request) {
+		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 			if g, e := req.URL.Path, "/bar/baz"; g != e {
 				t.Errorf("darwini.Var child url path is wrong: %q != %q", g, e)
 			}

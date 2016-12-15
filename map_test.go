@@ -5,16 +5,15 @@ import (
 	"testing"
 
 	"github.com/tv42/darwini"
-	"golang.org/x/net/context"
 )
 
 func TestMapSimple(t *testing.T) {
 	var seen bool
-	h := func(ctx context.Context, w http.ResponseWriter, req *http.Request) {
+	h := func(w http.ResponseWriter, req *http.Request) {
 		seen = true
 	}
 	m := darwini.Map{
-		"foo": darwini.HandlerFunc(h),
+		"foo": http.HandlerFunc(h),
 	}
 	resp := DoRequest(m, "GET", "/foo", nil)
 	if !seen {
@@ -42,11 +41,11 @@ func TestMapSelf(t *testing.T) {
 
 func TestMapSlash(t *testing.T) {
 	var seen bool
-	h := func(ctx context.Context, w http.ResponseWriter, req *http.Request) {
+	h := func(w http.ResponseWriter, req *http.Request) {
 		seen = true
 	}
 	m := darwini.Map{
-		"": darwini.HandlerFunc(h),
+		"": http.HandlerFunc(h),
 	}
 	resp := DoRequest(m, "GET", "/", nil)
 	if !seen {

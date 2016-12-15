@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/tv42/darwini"
-	"golang.org/x/net/context"
 )
 
 var (
@@ -21,19 +20,19 @@ type gistStore struct {
 	gists map[uint64]*gist
 }
 
-func (s *gistStore) list(ctx context.Context, w http.ResponseWriter, req *http.Request) {
+func (s *gistStore) list(w http.ResponseWriter, req *http.Request) {
 	json.NewEncoder(w).Encode(s.gists)
 }
 
-func (s *gistStore) listPublic(ctx context.Context, w http.ResponseWriter, req *http.Request) {
+func (s *gistStore) listPublic(w http.ResponseWriter, req *http.Request) {
 	json.NewEncoder(w).Encode(s.gists)
 }
 
-func (s *gistStore) listStarred(ctx context.Context, w http.ResponseWriter, req *http.Request) {
+func (s *gistStore) listStarred(w http.ResponseWriter, req *http.Request) {
 	json.NewEncoder(w).Encode(s.gists)
 }
 
-func (s *gistStore) create(ctx context.Context, w http.ResponseWriter, req *http.Request) {
+func (s *gistStore) create(w http.ResponseWriter, req *http.Request) {
 	i := uint64(len(s.gists)) + 1
 	g := &gist{ID: uint64(i), store: s}
 	s.gists[i] = g
@@ -59,22 +58,22 @@ type gist struct {
 	Star  bool
 }
 
-func (g *gist) get(ctx context.Context, w http.ResponseWriter, req *http.Request)   {}
-func (g *gist) patch(ctx context.Context, w http.ResponseWriter, req *http.Request) {}
-func (g *gist) del(ctx context.Context, w http.ResponseWriter, req *http.Request)   {}
-func (g *gist) isStar(ctx context.Context, w http.ResponseWriter, req *http.Request) {
+func (g *gist) get(w http.ResponseWriter, req *http.Request)   {}
+func (g *gist) patch(w http.ResponseWriter, req *http.Request) {}
+func (g *gist) del(w http.ResponseWriter, req *http.Request)   {}
+func (g *gist) isStar(w http.ResponseWriter, req *http.Request) {
 	json.NewEncoder(w).Encode(g.Star)
 }
-func (g *gist) star(ctx context.Context, w http.ResponseWriter, req *http.Request) {
+func (g *gist) star(w http.ResponseWriter, req *http.Request) {
 	g.Star = true
 }
-func (g *gist) unstar(ctx context.Context, w http.ResponseWriter, req *http.Request) {
+func (g *gist) unstar(w http.ResponseWriter, req *http.Request) {
 	g.Star = false
 }
-func (g *gist) forks(ctx context.Context, w http.ResponseWriter, req *http.Request) {
+func (g *gist) forks(w http.ResponseWriter, req *http.Request) {
 }
 
-func removeSlash(ctx context.Context, w http.ResponseWriter, req *http.Request) {}
+func removeSlash(w http.ResponseWriter, req *http.Request) {}
 
 /*
 GET /gists
@@ -101,14 +100,14 @@ func Example() {
 				POST: gists.create,
 			},
 			Child: darwini.Var{
-				Child: func(seg string) darwini.Handler {
+				Child: func(seg string) http.Handler {
 					// Mixing dynamic and static segments is just bad,
 					// so we won't bother to assist in that. Write code.
 					switch seg {
 					case "public":
-						return darwini.HandlerFunc(gists.listPublic)
+						return http.HandlerFunc(gists.listPublic)
 					case "starred":
-						return darwini.HandlerFunc(gists.listStarred)
+						return http.HandlerFunc(gists.listStarred)
 					}
 					g, err := gists.get(seg)
 					if err != nil {
@@ -121,7 +120,7 @@ func Example() {
 							DELETE: g.del,
 						},
 						Child: darwini.Map{
-							"": darwini.HandlerFunc(removeSlash),
+							"": http.HandlerFunc(removeSlash),
 							"star": darwini.Method{
 								GET:    g.isStar,
 								PUT:    g.star,
@@ -136,7 +135,7 @@ func Example() {
 			},
 		},
 	}
-	s := httptest.NewServer(darwini.WithContext(m))
+	s := httptest.NewServer(m)
 	defer s.Close()
 
 	resp, err := http.Post(s.URL+"/gists", "text/plain", strings.NewReader("hello, world"))

@@ -2,8 +2,6 @@ package darwini
 
 import (
 	"net/http"
-
-	"golang.org/x/net/context"
 )
 
 // Var multiplexes dynamically based on the next path segment. For Var
@@ -12,13 +10,13 @@ import (
 // the handler Child returns for seg, or not found if Child is nil or
 // returns nil.
 type Var struct {
-	Index Handler
-	Child func(seg string) Handler
+	Index http.Handler
+	Child func(seg string) http.Handler
 }
 
-var _ Handler = Var{}
+var _ http.Handler = Var{}
 
-func (v Var) ServeHTTP(ctx context.Context, w http.ResponseWriter, req *http.Request) {
+func (v Var) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	if req.URL.Path == "" {
 		// Var does not serve "itself", ever. Use a wrapper Dir if you
 		// want that.
@@ -34,7 +32,7 @@ func (v Var) ServeHTTP(ctx context.Context, w http.ResponseWriter, req *http.Req
 			http.Error(w, "Forbidden", http.StatusForbidden)
 			return
 		}
-		v.Index.ServeHTTP(ctx, w, req)
+		v.Index.ServeHTTP(w, req)
 		return
 	}
 
@@ -48,5 +46,5 @@ func (v Var) ServeHTTP(ctx context.Context, w http.ResponseWriter, req *http.Req
 		http.Error(w, "Not found", http.StatusNotFound)
 		return
 	}
-	h.ServeHTTP(ctx, w, req)
+	h.ServeHTTP(w, req)
 }

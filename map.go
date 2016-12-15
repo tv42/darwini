@@ -2,8 +2,6 @@ package darwini
 
 import (
 	"net/http"
-
-	"golang.org/x/net/context"
 )
 
 // Map multiplexes requests to children based on a map lookup. For Map
@@ -13,11 +11,11 @@ import (
 // As a special case, missing /path/ is forbidden instead of not
 // found, to avoid a situation where /path/foo exists but its parent
 // does not.
-type Map map[string]Handler
+type Map map[string]http.Handler
 
-var _ Handler = Map(nil)
+var _ http.Handler = Map(nil)
 
-func (c Map) ServeHTTP(ctx context.Context, w http.ResponseWriter, req *http.Request) {
+func (c Map) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	if req.URL.Path == "" {
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
@@ -25,7 +23,7 @@ func (c Map) ServeHTTP(ctx context.Context, w http.ResponseWriter, req *http.Req
 	seg, rest := segment(req.URL.Path)
 	req.URL.Path = rest
 
-	var child Handler
+	var child http.Handler
 	if c != nil {
 		child = c[seg]
 	}
@@ -39,5 +37,5 @@ func (c Map) ServeHTTP(ctx context.Context, w http.ResponseWriter, req *http.Req
 		http.NotFound(w, req)
 		return
 	}
-	child.ServeHTTP(ctx, w, req)
+	child.ServeHTTP(w, req)
 }
