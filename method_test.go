@@ -9,26 +9,6 @@ import (
 	"github.com/tv42/darwini"
 )
 
-func TestMethodBadSlash(t *testing.T) {
-	m := darwini.Method{
-		GET: DoNotCall,
-	}
-	resp := DoRequest(m, "GET", "/", nil)
-	if resp.Code != http.StatusNotFound {
-		t.Errorf("Method must not handle children: %v %v", resp.Code, resp.Body)
-	}
-}
-
-func TestMethodBadChild(t *testing.T) {
-	m := darwini.Method{
-		GET: DoNotCall,
-	}
-	resp := DoRequest(m, "GET", "/bad", nil)
-	if resp.Code != http.StatusNotFound {
-		t.Errorf("Method must not handle children: %v %v", resp.Code, resp.Body)
-	}
-}
-
 func TestMethodBadMethod(t *testing.T) {
 	m := darwini.Method{
 		GET:    DoNotCall,
@@ -131,5 +111,43 @@ func TestMethodCustom(t *testing.T) {
 	resp := DoRequest(m, "FROB", "", nil)
 	if !seen {
 		t.Errorf("never saw FROB: %v %v", resp.Code, resp.Body)
+	}
+}
+
+func TestMethodSlash(t *testing.T) {
+	var seen bool
+	var seenPath string
+	h := func(w http.ResponseWriter, req *http.Request) {
+		seen = true
+		seenPath = req.URL.Path
+	}
+	m := darwini.Method{
+		GET: h,
+	}
+	resp := DoRequest(m, "GET", "/", nil)
+	if !seen {
+		t.Errorf("never saw GET with a slash: %v %v", resp.Code, resp.Body)
+	}
+	if g, e := seenPath, "/"; g != e {
+		t.Errorf("Method should not change the URL path: %q != %q", g, e)
+	}
+}
+
+func TestMethodChild(t *testing.T) {
+	var seen bool
+	var seenPath string
+	h := func(w http.ResponseWriter, req *http.Request) {
+		seen = true
+		seenPath = req.URL.Path
+	}
+	m := darwini.Method{
+		GET: h,
+	}
+	resp := DoRequest(m, "GET", "/child", nil)
+	if !seen {
+		t.Errorf("never saw GET with a slash: %v %v", resp.Code, resp.Body)
+	}
+	if g, e := seenPath, "/child"; g != e {
+		t.Errorf("Method should not change the URL path: %q != %q", g, e)
 	}
 }

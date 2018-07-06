@@ -4,10 +4,9 @@ import (
 	"net/http"
 )
 
-// Method multiplexes requests based on the HTTP method. For Method at
-// /path, /path/anything is not found, and /path is served based on
-// the fields set. The handler for a method is set either with the
-// predefined fields, or for custom methods, with the Custom map.
+// Method multiplexes requests based on the HTTP method. The handler
+// for a method is set either with the predefined fields, or for
+// custom methods, with the Custom map.
 //
 // The values here are HandlerFuncs and not Handlers, as it is common
 // to make them be methods on the same value.
@@ -64,11 +63,6 @@ func (m Method) err(w http.ResponseWriter, req *http.Request) {
 }
 
 func (m Method) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	// disallow children; caller should use Dir if that's desired
-	if req.URL.Path != "" {
-		http.NotFound(w, req)
-		return
-	}
 	h := m.get(req.Method)
 	if h == nil {
 		m.err(w, req)
